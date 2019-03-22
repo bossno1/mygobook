@@ -1,5 +1,10 @@
 package main
-
+//taoqing 2019.3.2 d views/list.html 增加了 visjs， 增加对于PB端的互动
+/*
+运行photoweb.exe 
+visjs演示：
+http://localhost:8080/view/
+*/
 import (
 	"html/template"
 	"io"
