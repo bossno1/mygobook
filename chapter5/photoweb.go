@@ -19,7 +19,10 @@ import (
 	"fmt"
 )
 //go get github.com/mattn/go-adodb
+//go get github.com/jinzhu/gorm
 import (
+	"github.com/jinzhu/gorm"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-adodb"
 )
 type Mssql struct {
@@ -54,10 +57,44 @@ func (m *Mssql) Open() (err error){
 	if err != nil {
 		return err
 	}
+ 
 	return nil
 }
-
-func main() {
+type Product struct {
+	gorm.Model
+	Code string
+	Price uint
+  }
+  
+  func main() {
+	  //is not officially supported, running under compatibility mode.
+	db, err := gorm.Open("adodb", "Provider=SQLOLEDB;Data Source=192.168.31.144,51798;Initial Catalog=his_yb;user id=sa;password=146-164-156-;")
+	if err != nil {
+	  panic("failed to connect database")
+	}
+	defer db.Close()
+	fmt.Printf("Pleasee: ")
+	var FirstName, SecondNames string
+	fmt.Scanln(&FirstName, &SecondNames) 
+	fmt.Printf("Hi %s %s!\n", FirstName, SecondNames)
+	// Migrate the schema
+	db.AutoMigrate(&Product{})
+  
+	// Create
+	db.Create(&Product{Code: "L1212", Price: 1000})
+  
+	// Read
+	var product Product
+	db.First(&product, 1) // find product with id 1
+	db.First(&product, "code = ?", "L1212") // find product with code l1212
+  
+	// Update - update product's price to 2000
+	db.Model(&product).Update("Price", 2000)
+  
+	// Delete - delete product
+	//db.Delete(&product)
+  }
+func main_mssqlseelect() {//_mssqlseelect
 	db := Mssql {
 		//DESKTOP-LN3T12M\SQL2008
 		//127.0.0.1
@@ -88,6 +125,10 @@ func main() {
 		rows.Scan(&name)
 		fmt.Printf("Name: %s\n", name)
 	}
+	var FirstName, SecondNames string
+	fmt.Printf("Please enter your full name: ")
+	fmt.Scanln(&FirstName, &SecondNames) 
+	fmt.Printf("Hi %s %s!\n", FirstName, SecondNames)
 }
 
 //---------------
