@@ -3,7 +3,8 @@ package main
 import (
     "database/sql"
     "fmt"
-    "log"
+	"log"
+	"net/url"
 	/*_ "github.com/lib/pq"*/
 	_ "github.com/denisenkom/go-mssqldb"
     /* 这个star 比较少_ "github.com/mattn/go-adodb"*/
@@ -35,12 +36,24 @@ type Place struct {
 }
 
 func main() {
+	query := url.Values{}
+  	query.Add("app name", "MyAppName")
+
+  	u := &url.URL{
+      Scheme:   "sqlserver",
+      User:     url.UserPassword("sa", "146-164-156-"),
+      Host:     fmt.Sprintf("%s:%d", "127.0.0.1", 51798),
+      // Path:  instance, // if connecting to an instance instead of a port
+      RawQuery: query.Encode(),
+  	}
     // this Pings the database trying to connect, panics on error
     // use sqlx.Open() for sql.Open() semantics
 	//db, err := sqlx.Connect("postgres", "user=foo dbname=bar sslmode=disable")
 	//db, err := sqlx.Connect("adodb", "Provider=SQLOLEDB;Data Source=192.168.31.144,51798;Initial Catalog=his_yb;user id=sa;password=146-164-156-;")
-	db, err := sqlx.Connect("sqlserver", "sqlserver://sa:146-164-156-@localhost:51798?database=his_yb&connection+timeout=30")
-	
+	fmt.Println( u.String())
+	//db, err := sqlx.Connect("sqlserver", u.String()) //"sqlserver://sa:146-164-156-@localhost:51798?database=his_yb&connection+timeout=30")
+	db, err := sqlx.Connect("sqlserver", "SERVER=192.168.31.144:51798;user id=sa;password=146-164-156-;database=his_yb") // ://sa:146-164-156-@localhost:51798?database=his_yb&connection+timeout=30"") //"")
+	//server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName
     if err != nil {
 		log.Fatalln(err)
 		return;
