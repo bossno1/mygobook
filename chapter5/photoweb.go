@@ -14,8 +14,83 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"database/sql"
+	"strings"
+	"fmt"
 )
+//go get github.com/mattn/go-adodb
+import (
+	_ "github.com/mattn/go-adodb"
+)
+type Mssql struct {
+	*sql.DB
+	dataSource string
+	database string
+	windows bool
+	sa   SA
+}
+type SA struct {
+	user string
+	passwd string
+	port int 
 
+}
+func (m *Mssql) Open() (err error){
+	var conf []string
+	conf = append(conf, "Provider=SQLOLEDB")
+	conf = append(conf, "Data Source=" +m.dataSource)
+	conf = append(conf, "Initial Catalog=" +m.database)
+
+	//以当前windows系统用户身份登录SQL， 如果服务不支持这个方式登录，就会出错
+	if m.windows {
+		conf = append(conf, "intergrated security=SSPI")
+	} else {
+		conf = append(conf, "hostname=ffff")
+		conf = append(conf, "user id=" + m.sa.user)
+		conf = append(conf, "password=" + m.sa.passwd)
+		//conf = append(conf, "port="+ fmt.Sprint(m.sa.port))
+	}
+	m.DB, err = sql.Open("adodb", strings.Join(conf, ";"))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func main() {
+	db := Mssql {
+		//DESKTOP-LN3T12M\SQL2008
+		//127.0.0.1
+		//127.0.0.1\\SQL2008
+		dataSource: "192.168.31.144,51798",
+		database: "his_yb",
+		//windows: true为windows身份验证, false必须设置sa帐号和密码
+		windows: false,
+		sa: SA{
+			user:"sa",
+			passwd: "146-164-156-",
+			port: 51798, //这个参数发现没用， 而是在端口写在datastore用 ,号分隔即可
+		},
+	}
+	err := db.Open() //发现这里并不会马上打开，而是等到Query发起才会去连接数据库
+	if err != nil{
+		fmt.Println("sql open:", err)
+		return
+	}
+	defer db.Close()  //最好在close之前加个等待命令，看是否真的没有断开链接
+	rows, err := db.Query("select opername from dictoper")
+	if err != nil {
+		fmt.Println("query:", err)
+		return
+	}
+	for rows.Next(){
+		var name string
+		rows.Scan(&name)
+		fmt.Printf("Name: %s\n", name)
+	}
+}
+
+//---------------
 const (
 	ListDir      = 0x0001
 	UPLOAD_DIR   = "./uploads"
@@ -135,7 +210,7 @@ func staticDirHandler(mux *http.ServeMux, prefix string, staticDir string, flags
 	})
 }
 
-func main() {
+func main1() {
 	mux := http.NewServeMux()
 	staticDirHandler(mux, "/assets/", "./public", 0)
 	mux.HandleFunc("/", safeHandler(listHandler))
