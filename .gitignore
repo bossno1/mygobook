@@ -2,6 +2,8 @@ a.out
 bin/
 pkg/
 *.exe
+*.rar
+*.zip
 chapter4/channel
 chapter4/goroutine
 chapter4/goroutine2
