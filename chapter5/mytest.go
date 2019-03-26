@@ -77,15 +77,11 @@ func xmlHandler(w http.ResponseWriter, r *http.Request) {
 	var result []Result
 	db.Raw("[sp_tqtest]  ?", 1).Scan(&result)  //见：http://gorm.io/zh_CN/docs/sql_builder.html ,https://github.com/denisenkom/go-mssqldb
 	fmt.Println(result)  //返回数组
-	
-	
-
 	//返回结果
-
 	w.Header().Set("Content-Type", "application/xml;charset=UTF-8")
+
 	/*
 	outv := &program{"1", "中拓香洲测试返回，收到function_id=" + v.Function_id}
-	 
     output, err := xml.MarshalIndent(outv, "  ", "    ")
     if err != nil {
         fmt.Printf("error: %v\n", err)
@@ -93,17 +89,14 @@ func xmlHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(v)
 	*/
 	yh := &yygh001.Program{Session_id:"234234", Function_id:"234234", Akb020:"akb020"}
-	//yh.Doctor =  append(yh.Doctor, yygh001.Doctorsourceinfo{Aaz307:"Aaz307"})
 	var doctor *yygh001.Doctorsourceinfo
-	doctor = &yygh001.Doctorsourceinfo{Aaz307:"赵医生"}
-	//sourceinfo只出现一次
+	doctor = &yygh001.Doctorsourceinfo{Aaz307:"赵医生", Aaz386:"001"}
 	doctor.Source = append(doctor.Source, yygh001.Sourceinfo{Aae030: "上午"});
 	doctor.Source = append(doctor.Source, yygh001.Sourceinfo{Aae030: "下午"});
 	doctor.Source = append(doctor.Source, yygh001.Sourceinfo{Aae030: "晚上"});
 	yh.Doctor =  append(yh.Doctor, *doctor)
 
 	doctor = &yygh001.Doctorsourceinfo{Aaz307:"李医生"}
-	//sourceinfo只出现一次
 	doctor.Source = append(doctor.Source, yygh001.Sourceinfo{Aae030: "上午"});
 	doctor.Source = append(doctor.Source, yygh001.Sourceinfo{Aae030: "下午"});
 	doctor.Source = append(doctor.Source, yygh001.Sourceinfo{Aae030: "晚上"});
