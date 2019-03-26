@@ -76,7 +76,7 @@ func main() {
 	fmt.Println( u.String())
     //db, err := sqlx.Connect("sqlserver", u.String()) //"sqlserver://sa:146-164-156-@localhost:51798?database=his_yb&connection+timeout=30")
     //注意连接SQL SERVER 2008R2出错（可能需要打SP3补丁），而SQL SERVER 2017  port:52813 没有问题  
-    db, err := sqlx.Connect("sqlserver", "sqlserver://sa:146-164-156-@127.0.0.1:52813?database=master;encrypt=disable;app name=tqtest")
+    db, err := sqlx.Connect("sqlserver", "sqlserver://sa:146-164-156-@127.0.0.1:51798?database=master;encrypt=disable;app name=tqtest")
 	//db, err := sqlx.Connect("sqlserver", "server=192.168.31.144;port=51798;user id=sa;password=146-164-156-;database=his_yb") // ://sa:146-164-156-@localhost:51798?database=his_yb&connection+timeout=30"") //"")
 	//server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName
     if err != nil {
