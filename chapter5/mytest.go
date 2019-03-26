@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"encoding/xml"
 	"yygh001"
+	"session"
 )
 import (
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
@@ -182,7 +184,7 @@ type Result struct {
 func main() {
 	//db, err := sqlx.Connect("sqlserver", "sqlserver://sa:146-164-156-@127.0.0.1:52813?database=master;encrypt=disable;app name=tqtest")
 	//db, err := gorm.Open("sqlserver", "sqlserver://sa:146-164-156-@127.0.0.1:51798?database=master;encrypt=disable;app name=tqtest")
-	
+	session.GetSession()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ZTWebService.asmx/FacadeService", safeHandler(xmlHandler))
 	
@@ -190,4 +192,5 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
+	
 }
