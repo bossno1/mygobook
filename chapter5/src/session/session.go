@@ -1,7 +1,6 @@
 package session
-//taoqing 2019.3.26  gorm  ，如何调用存储过程呢？
+//taoqing 2019.3.26  
 import (
- 
 	"net/http"
 	"strings"
 	"fmt"
@@ -33,15 +32,13 @@ func GetSession() string{
 			`
 	fmt.Printf("获取session:%v\n",viper.GetString("ZHSocialURL"))
 	request, _ := http.NewRequest("POST", viper.GetString("ZHSocialURL"), strings.NewReader(parm))
-    //post数据并接收http响应
-    resp,err :=http.DefaultClient.Do(request)
-    if err!=nil{
+	//post数据并接收http响应
+	resp,err :=http.DefaultClient.Do(request)
+	if err!=nil{
 		fmt.Printf("错误，无法获取Session:%v\n",err)
 		return ""
-    }else {
-      
+	}else {
 		respBody,_ := ioutil.ReadAll(resp.Body)
-	
 		v := program{}
 		err = xml.Unmarshal(respBody, &v)
 		if err != nil {
@@ -55,7 +52,5 @@ func GetSession() string{
 		fmt.Printf("Session:%v\n",v.Session_id)
 		return v.Session_id
 	}
-	
 
-	 
 }

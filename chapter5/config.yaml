@@ -2,3 +2,9 @@ ZHSocialURL: http://10.144.182.142:8080/hygeia_esb_zh/api/call.action
 function_id: sys0001
 userid: SC000D
 password: abc
+
+his:
+   userid: sa
+   password: 146-164-156-
+   ip: 127.0.0.1:51798
+   database: his_yb
