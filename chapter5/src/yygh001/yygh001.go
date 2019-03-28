@@ -3,10 +3,10 @@ import(
 	"encoding/xml"
 	"net/http"
 	"strings"
-	"fmt"
 	"session"
 	"github.com/spf13/viper"
 	"io/ioutil"
+	"github.com/lexkong/log"
 )
 import (
 	"github.com/jinzhu/gorm"
@@ -69,11 +69,9 @@ func FilterSlice(s []Sourceinfo, filter func(x Sourceinfo, thisoperid string) bo
 		newS = append(newS, x)
 	  }
 	}
-	//fmt.Println("------")
-	//fmt.Println(newS[:1])
-	return newS 
+	return newS
   }
-//return output2
+
 func returnXML(code string , errTxt string) []byte{
 	outv := &program{code, errTxt}
 	output, err := xml.MarshalIndent(outv, "  ", "    ")
@@ -86,24 +84,25 @@ func returnXML(code string , errTxt string) []byte{
 }
 
 func Process( s_session string, date string) []byte {
-    fmt.Println("连接数据库", "sqlserver://" + viper.GetString("his.userid") + ":" + viper.GetString("his.password") + "@" + viper.GetString("his.ip") + "?database=" +  viper.GetString("his.database") + ";encrypt=disable;app name=tqtest");
+  log.Infof("连接数据库", "sqlserver://" + viper.GetString("his.userid") + ":" + viper.GetString("his.password") + "@" + viper.GetString("his.ip") + "?database=" +  viper.GetString("his.database") + ";encrypt=disable;app name=tqtest");
 	db, err := gorm.Open("mssql", "sqlserver://" + viper.GetString("his.userid") + ":" + viper.GetString("his.password") + "@" + viper.GetString("his.ip") + "?database=" +  viper.GetString("his.database") + ";encrypt=disable;app name=tqtest")
 	if err != nil {
 		return returnXML("-1", "院方端无法连接数据库") 
 		
 	}
-	fmt.Println("完成连接")
+	log.Infof("完成连接")
 	defer db.Close()
 	var result []Doctorsourceinfo   //医生信息
 	var bzresult []Sourceinfo //排班信息
  	dbdoc := db.Raw("[sp_getRegSourceInfo_tq]  ?,?,?", date, date, 2).Scan(&result) //见：http://gorm.io/zh_CN/docs/sql_builder.html ,https://github.com/denisenkom/go-mssqldb
 	dbbz := db.Raw("[sp_getRegSourceInfo_tq]  ?,?,?", date, date, 3).Scan(&bzresult) //见：http://gorm.io/zh_CN/docs/sql_builder.html ,https://github.com/denisenkom/go-mssqldb
 	if dbdoc.Error != nil {
-		fmt.Println(dbdoc.Error)
+	//	fmt.Println(dbdoc.Error)
+		log.Fatal("院方端取数据出库(医生信息)", dbdoc.Error)
 		return returnXML("-1", "院方端取数据出库(医生信息)" + dbdoc.Error.Error() )
 	}
 	if dbbz.Error != nil {
-		fmt.Println(dbbz.Error)
+		log.Fatal("院方端取数据出库(排班数据)", dbbz.Error)
 		return returnXML("-1", "院方端取数据出库(排班数据)" + dbbz.Error.Error() )
 	}
 	 
@@ -133,10 +132,10 @@ func Process( s_session string, date string) []byte {
 
 	output2, err2 := xml.MarshalIndent(yh, "", "    ")
     if err2 != nil {
-        fmt.Printf("error: %v\n", err2)
+        log.Fatal("error: %v\n", err2)
 	}
 	v := program{} 
-	fmt.Println(string(output2))
+	log.Infof(string(output2))
 	//下面数据上传
 	request, _ := http.NewRequest("POST", viper.GetString("ZHSocialURL"), strings.NewReader(string(output2)))
 	//post数据并接收http响应

@@ -8,3 +8,13 @@ his:
    password: 146-164-156-
    ip: 127.0.0.1:51798
    database: his_yb
+log:
+   writers: file,stdout   
+   logger_level: DEBUG
+   logger_file: log/apiserver.txt
+   log_format_text: true
+   rollingPolicyj: size
+   log_rotate_date: 1
+   log_rotate_size: 2048
+   log_backup_count: 7
+ 
