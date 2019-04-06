@@ -12,7 +12,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
-  )
+  ) 
 //4.6.1	上传医院预约挂号号源
 type Program struct {
 	XMLName xml.Name `xml:"program"`
