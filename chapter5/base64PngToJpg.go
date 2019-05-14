@@ -49,12 +49,12 @@ func main(){
 	 
 	//path := getCurrentPath()
 	//fmt.Println(path)
-	if len(os.Args) == 2 {
-		panic("缺少参数 base64PngToJpg.exe  xxxxxx.txt  xxxxxx.jpg")
+	if len(os.Args) != 2 {
+		panic("使用方式：base64PngToJpg.exe  xxxxxx.txt  xxxxxx.jpg")
 	}
 	parmBase64txt := os.Args[1]
 	if ! PathExists(parmBase64txt){
-		fmt.Println("缺少" + parmBase64txt)
+		fmt.Println("文件不存在：" + parmBase64txt)
 		os.Exit(-2)
 	}
 	tempJpgfile := os.Args[2]
