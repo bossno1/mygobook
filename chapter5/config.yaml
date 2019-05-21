@@ -18,3 +18,10 @@ log:
    log_rotate_size: 2048
    log_backup_count: 7
  
+zh:
+   port: 6001
+   userid: sa
+   password: 146-164-156-
+   ip: 127.0.0.1
+   sqlport: 51798
+   database: gx_zh

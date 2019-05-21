@@ -2,6 +2,8 @@
 描述 :  golang  AES/ECB/PKCS5  加密解密
 date : 2016-04-08
 https://www.cnblogs.com/lavin/p/5373188.html
+
+tq: 2019.5.21 增加sha256
 */
 package main
 
@@ -12,7 +14,9 @@ import (
     "encoding/base64"
     "fmt"
 	"strings"
-	"os"
+    "os"
+    "crypto/sha256"
+    "encoding/hex"
 )
 func main() {
     /*
@@ -24,24 +28,47 @@ func main() {
     aes ae4ead79e2bb40d69f163717b61e7984 1
     aes d ae4ead79e2bb40d69f163717b61e7984 YEtumQjPD6Vqq4gn2UT6qg==
     aes d ae4ead79e2bb40d69f163717b61e7984 avsmYXH2kwROgfn713Igddp0ubo3le7JCFzg9lGA5sGiQu3fUwlQn/Ta8Uw9CDarV/COPN+KAYjrt2g5IzNmHCSk2eglQpK7chWI48AIpYI=
+    aes sha256 app_id=3vtzutuzb131il4io4&biz_content=c30d18ac98e71c03eaa110aab94b5abed6439c942325d1ab50d60e7d8a8460844c9eaf96b66083445bb3f030c3b3782f9f88e382dafc5091f7b2ad63e6994b9a368d52ee36c8dbd7429427d8ca6b6a8a27d4f23faddf49f5600fa340c9a2376d&digest_type=SM3&enc_type=SM4&method=ehc.ehealthcode.verify&term_id=SK0001&timestamp=1557236049417&version=X.M.0.1ae4ead79e2bb40d69f163717b61e7984
      */
      
      switch len(os.Args) {
         case 4 :
+           
             key := os.Args[2]
             crypted := os.Args[3]
-           // fmt.Println([]byte(crypted), string([]byte(crypted)));
-            //AesDecrypt([]byte(crypted), []byte(key))
-            iReturn := saveAesDecrypt(crypted, []byte(key))
+            iReturn  := saveAesDecrypt(crypted, []byte(key))
             os.Exit(iReturn)
         case 3:
             key := os.Args[1]
             src := os.Args[2]
-            iReturn := saveAesEncrypt(src, key)
-            os.Exit(iReturn)
+            var iReturn1 int
+            if strings.ToLower(key) == "sha256" {
+                iReturn1 = saveSHA256(src)
+            }else {
+                iReturn1 = saveAesEncrypt(src, key)
+            }
+            os.Exit(iReturn1)
         default:
-            panic("使用方式：aes.exe key text 或解密 aes.exe d key text " )
+            panic("使用方式：aes.exe key text 或解密 aes.exe d key text 或sha256   aes.exe sha256 text  " )
      }
+}
+func saveSHA256(src string) int {
+   
+	userFile := "AES.txt"
+    fout, err := os.Create(userFile)        
+    if err != nil {
+        fmt.Println(userFile, err)
+        return -1
+    }
+    defer fout.Close()
+
+    h := sha256.New()
+    h.Write([]byte(src))
+    s  := hex.EncodeToString(h.Sum(nil))
+
+    fout.WriteString(s);
+    //fmt.Printf("%x\n", h.Sum(nil))
+    return 100
 }
 
 func saveAesEncrypt(src , key string) int {
@@ -56,16 +83,7 @@ func saveAesEncrypt(src , key string) int {
     defer fout.Close()
  
     fout.Write([]byte(base64.StdEncoding.EncodeToString(crypted) ))
-    fout.Write([]byte(key))
-    //fout.Writeln([]byte(base64.StdEncoding.EncodeToString(crypted) ))
-    
-    fmt.Println("------end---------")
-
-    // src := AesDecrypt( []byte("YEtumQjPD6Vqq4gn2UT6qg=="), []byte(key))
-    // fout.Write([]byte('解密----'))
-    // fout.Write(src)
-    //  iReturn := saveAesDecrypt( []byte("YEtumQjPD6Vqq4gn2UT6qg==")  , []byte(key))
-   //  fmt.Println( iReturn)
+  
     return 100
 }
 
