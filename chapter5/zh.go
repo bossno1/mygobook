@@ -21,6 +21,7 @@ import (
 	"github.com/lexkong/log"
 	"database/sql"
 	mssql "github.com/denisenkom/go-mssqldb"
+	"strconv"
 )
 //---------------
 /*
@@ -66,12 +67,48 @@ type InfoList struct {
 type InfoListlice struct {
     InfoLists []InfoList
 }
+
+type returnJson struct {
+	// ID 不会导出到JSON中
+	//ID int `json:"-"`
+
+	//这样表示会进行二次JSON编码  	Message string `json:"message,string"`
+	Result  string `json:"result"`
+	Message string `json:"message"`
+
+	// 如果 ServerIP 为空，则不输出到JSON串中
+	//ServerIP   string `json:"serverIP,omitempty"`
+}
+/*s := Server {
+ID:         3,
+ServerName:  `Go "1.0" `,
+ServerName2: `Go "1.0" `,
+ServerIP:   ``,
+}
+b, _ := json.Marshal(s)
+os.Stdout.Write(b)
+*/
+func returnJSON(code string , errTxt string, w http.ResponseWriter) []byte{
+	s := returnJson {
+		Result:  code,  //0失败 1成功 
+		Message: errTxt, 
+	}
+	b, _ := json.Marshal(s)
+	//返回结果
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.Write(b)
+	return b
+}
 func check(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
- 
+
+func Decimal(value float64, dec int) float64 {
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%." +  strconv.Itoa(dec) + "f", value), 64)
+	return value
+}
 func isExists(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -85,16 +122,18 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("method:", r.Method)
 	body, err := ioutil.ReadAll(r.Body)
     if err != nil {
-        fmt.Printf("read body err, %v\n", err)
+		fmt.Printf("read body err, %v\n", err)
+		returnJSON("0", err.Error(), w)
         return
 	}
 	js, err := simplejson.NewJson(body);
-
+	log.Infof(string(body))
 	//fmt.Println(string(body))
 	//解析参数
 	err = json.Unmarshal([]byte(body), &s)
     if err != nil {
-        fmt.Printf("error: %v", err)
+		fmt.Printf("error: %v", err)
+		returnJSON("0", err.Error(), w)
         return
 	}
 	 
@@ -104,24 +143,14 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println(ClubId, remark1, ConsumeTime)
 	arr, _ := js.Get("infoList").Array()
 
-	var info interface{}
-	for index:=0; index < len(arr) ; index++ {
-		info = arr[index]
-		//type interface {} does not support indexing， 要用以下方式获取
-		fmt.Println(info.(map[string]interface{})["customerId"])
-
-    }
-	//fmt.Println(arr[0](map[string]interface{})["customerId"])//["customerId"])
-	//fmt.Println(arr)
- 
+	//设置数据库链接参数
 	query := url.Values{}
 	query.Add("app name", "MyAppName")
 	query.Add("encrypt", "disable")
 	query.Add("database", viper.GetString("zh.database"))
-	
 	u := &url.URL{
 		Scheme:   "sqlserver" ,
-		User:     url.UserPassword(viper.GetString("zh.userid"), viper.GetString("zh.password")),
+		User:     url.UserPassword(viper.GetString("zh.userid"), viper.GetString("zh.password").Encode()),
 		Host:     fmt.Sprintf("%s:%s", viper.GetString("zh.ip"), viper.GetString("zh.sqlport")),
 		//Path:  ".\\sql2008" , //instance, // if connecting to an instance instead of a port
 		RawQuery: query.Encode(),
@@ -129,19 +158,22 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	connector, err := mssql.NewConnector(u.String())
 	if err != nil {
 		log.Infof(u.String(), err.Error())
+		returnJSON("0", err.Error(), w)
 		return
 	}
 	db := sql.OpenDB(connector)
 	defer db.Close() 
 	//err = db.Ping()
-	if err != nil {
-		log.Infof("无法连接数据库:", err.Error())
-		return
-	}
-	log.Infof("完成连接")
-	txn, err := db.Begin() //txn
+	// if err != nil {
+	// 	log.Infof("无法连接数据库:", err.Error())
+	// 	return
+	// }
+	// log.Infof("完成连接")
+	//启动事务
+	txn, err := db.Begin() 
 	if err != nil {
 		log.Infof(u.String(), err.Error());
+		returnJSON("0", err.Error(), w)
 		return
 	}
 	defer txn.Rollback()
@@ -169,14 +201,111 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	)	
 	if err1 != nil {
 		log.Infof(err1.Error());
+		returnJSON("0", err1.Error(), w)
 		return
 	}
- 	fmt.Println("rs_autonumb is %s", rs_autonumb)
+	//fmt.Println("rs_autonumb is %s", rs_autonumb)
+
+	type returnJson struct {
+		// ID 不会导出到JSON中
+		//ID int `json:"-"`
+	
+		// ServerName2 的值会进行二次JSON编码
+		Result  string `json:"result"`
+		Message string `json:"message,string"`
+	
+		// 如果 ServerIP 为空，则不输出到JSON串中
+		//ServerIP   string `json:"serverIP,omitempty"`
+	}
+
+	var info interface{}
+	var rs_errormsg = ""
+	var price, count, itemprice ,  totalprice  float64
+	
+	for index:=0; index < len(arr) ; index++ {
+		 info = arr[index]
+		 //type interface {} does not support indexing， 要用以下方式获取
+		 //fmt.Println(info.(map[string]interface{})["customerId"])
+		 //price = float64(info.(map[string]interface{})["count"]) * float64(info.(map[string]interface{})["itemPrice"])
+		 count, _  = strconv.ParseFloat(info.(map[string]interface{})["count"].(string), 64) 
+		 itemprice, _ = strconv.ParseFloat(info.(map[string]interface{})["itemPrice"].(string), 64)
+		 itemprice = Decimal(itemprice ,4) 
+		 price = Decimal(count * itemprice,2) 
+		 totalprice = totalprice + price;
+		 
+		//  price = count * itemprice
+		//  totalprice = totalprice + price
+		 _, err1 := txn.ExecContext(ctx, "sp_g012",
+			sql.Named("newAutonumb", rs_autonumb),
+			sql.Named("serial", index),
+			sql.Named("fldclientid", info.(map[string]interface{})["customerId"]),
+			sql.Named("carid", info.(map[string]interface{})["packageId"]),
+			sql.Named("clubId", ClubId),
+			sql.Named("itemId", info.(map[string]interface{})["itemId"]),
+			sql.Named("itemBzPrice", info.(map[string]interface{})["itemBzPrice"]),
+			sql.Named("itemPrice", price),
+			sql.Named("relaId", info.(map[string]interface{})["relaId"]),
+			sql.Named("servicePersonal", info.(map[string]interface{})["servicePersonal"]),
+			sql.Named("consumeTime", ConsumeTime),
+			sql.Named("type",  info.(map[string]interface{})["type"]), 
+			sql.Named("QUANTITY",  info.(map[string]interface{})["count"]),
+			sql.Named("totalPrice", 0),
+			sql.Named("remark1", remark1),
+			sql.Named("saveType", 2), //2写表明细
+			sql.Named("errormsg", sql.Out{Dest: &rs_errormsg}),
+		)	
+		if err1 != nil {
+			log.Infof(err1.Error());
+			returnJSON("0", err1.Error(), w)
+			return
+		}
+		if len(rs_errormsg) > 0 {
+			log.Infof(rs_errormsg);
+			returnJSON("0", rs_errormsg, w)
+			return
+		}
+		  
+	}
+	//写表头
+	_, err1 = txn.ExecContext(ctx, "sp_g012",
+		sql.Named("newAutonumb", rs_autonumb),
+		sql.Named("serial", 0),
+		sql.Named("fldclientid", info.(map[string]interface{})["customerId"]),
+		sql.Named("carid", info.(map[string]interface{})["packageId"]),
+		sql.Named("clubId", ClubId),
+		sql.Named("itemId", info.(map[string]interface{})["itemId"]),
+		sql.Named("itemBzPrice", info.(map[string]interface{})["itemBzPrice"]),
+		sql.Named("itemPrice", 0), //写表头不用这个
+		sql.Named("relaId", info.(map[string]interface{})["relaId"]),
+		sql.Named("servicePersonal", info.(map[string]interface{})["servicePersonal"]),
+		sql.Named("consumeTime", ConsumeTime),
+		sql.Named("type",  info.(map[string]interface{})["type"]), 
+		sql.Named("QUANTITY",  info.(map[string]interface{})["count"]),
+		sql.Named("totalPrice", totalprice),
+		sql.Named("remark1", remark1),
+		sql.Named("saveType", 1), //1写表头
+		sql.Named("errormsg", sql.Out{Dest: &rs_errormsg}),
+	)	
+	if err1 != nil {
+		log.Infof(err1.Error());
+		returnJSON("0", err1.Error(), w)
+		return
+	}
+	if len(rs_errormsg) > 0 {
+		log.Infof(rs_errormsg);
+		returnJSON("0", rs_errormsg, w)
+		return
+	}
 	err = txn.Commit()
 	if err != nil {
 		log.Infof(err.Error());
+		returnJSON("0", err.Error(), w)
 		return
 	}
+	log.Infof("成功，流水号:" + rs_autonumb) 
+	returnJSON("1", rs_autonumb, w)
+	return
+
 
 }
  
@@ -216,6 +345,7 @@ func main() {
 	abc := rep.Replace("\"<12345y>");
 	fmt.Println(abc)
 	*/
+	 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/SelfService", safeHandler(jsonHandler))
 	fmt.Println("Port:" + viper.GetString("zh.port"))
