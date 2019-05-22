@@ -18,36 +18,12 @@ import (
 	mssql "github.com/denisenkom/go-mssqldb"
 	"strconv"
 )
-//---------------
-/*
-//	"github.com/jinzhu/gorm"
-SelfService 入参：
-{  
-  
-   "clubId":"1",
-   "Remark1":"remark",
-   "consumeTime":"2018/12/30 02:05:00",
-   "infoList": [
-	   {
-	   "customerId":"0011191847",
-	   "packageId":"001001025745",
-	   "itemId":"12",
-	   "itemBzPrice":"100.00",
-	   "itemPrice":"20.00",
-	   "servicePersonal":"1",
-	   "type":"1",
-	   "relaId":"1",
-	   "count":"1"
-	   }
-   ]
-}
-*/
 
 type returnJson struct {
 	// ID 不会导出到JSON中
 	//ID int `json:"-"`
 	//这样表示会进行二次JSON编码  	Message string `json:"message,string"`
-	Result  string `json:"result"`
+	Result  string `json:"status"`
 	Message string `json:"message"`
 	// 如果 ServerIP 为空，则不输出到JSON串中
 	//ServerIP   string `json:"serverIP,omitempty"`
@@ -127,16 +103,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	//connector.SessionInitSQL = "set implicit_transactions off"
 	var rs_autonumb = "" //返回流水号
-	// rows, err1 := txn.QueryContext(ctx, "sp_get_invoinfo",
-	// sql.Named("al_item", 1),
-	// sql.Named("as_linkcode", ClubId),
-	// sql.Named("as_date", ConsumeTime),
-	// sql.Named("rs_autonumb", sql.Out{Dest: &rs_autonumb}),
-	// )
-	//  var strrow string
-	// for rows.Next() {
-	// 	err = rows.Scan(&strrow)
-	// }
+
 	//下面这个方法也可以
 	_, err1 := txn.ExecContext(ctx, "sp_get_invoinfo",
 		sql.Named("al_item", 1),
@@ -157,16 +124,12 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	for index:=0; index < len(arr) ; index++ {
 		 info = arr[index]
 		 //type interface {} does not support indexing， 要用以下方式获取
-		 //fmt.Println(info.(map[string]interface{})["customerId"])
-		 //price = float64(info.(map[string]interface{})["count"]) * float64(info.(map[string]interface{})["itemPrice"])
 		 count, _  = strconv.ParseFloat(info.(map[string]interface{})["count"].(string), 64) 
 		 itemprice, _ = strconv.ParseFloat(info.(map[string]interface{})["itemPrice"].(string), 64)
 		 itemprice = Decimal(itemprice ,4) 
 		 price = Decimal(count * itemprice,2) 
 		 totalprice = totalprice + price;
-		 
-		//  price = count * itemprice
-		//  totalprice = totalprice + price
+	 
 		 _, err1 := txn.ExecContext(ctx, "sp_g012",
 			sql.Named("newAutonumb", rs_autonumb),
 			sql.Named("serial", index),
@@ -287,3 +250,15 @@ func main() {
 	}
 	
 }
+/*
+	// rows, err1 := txn.QueryContext(ctx, "sp_get_invoinfo",
+	// sql.Named("al_item", 1),
+	// sql.Named("as_linkcode", ClubId),
+	// sql.Named("as_date", ConsumeTime),
+	// sql.Named("rs_autonumb", sql.Out{Dest: &rs_autonumb}),
+	// )
+	//  var strrow string
+	// for rows.Next() {
+	// 	err = rows.Scan(&strrow)
+	// }
+*/

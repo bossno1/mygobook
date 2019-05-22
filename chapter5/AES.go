@@ -23,20 +23,21 @@ func main() {
     *src 要加密或解密的字符串
     *key 用来加密的密钥 密钥长度可以是128bit、192bit、256bit中的任意一个
     *16位key对应128bit
-
+avsmYXH2kwROgfn713Igddp0ubo3le7JCFzg9lGA5sGiQu3fUwlQn/Ta8Uw9CDarV/COPN+KAYjrt2g5IzNmHCSk2eglQpK7chWI48AIpYI=
     aes ae4ead79e2bb40d69f163717b61e7984 85:6CFB29781341DDB2B1DD1E88F8C5B39FEC6CB8FCFADA86B01F506C6F9B45EE68:1
     aes ae4ead79e2bb40d69f163717b61e7984 1
     aes d ae4ead79e2bb40d69f163717b61e7984 YEtumQjPD6Vqq4gn2UT6qg==
     aes d ae4ead79e2bb40d69f163717b61e7984 avsmYXH2kwROgfn713Igddp0ubo3le7JCFzg9lGA5sGiQu3fUwlQn/Ta8Uw9CDarV/COPN+KAYjrt2g5IzNmHCSk2eglQpK7chWI48AIpYI=
     aes sha256 app_id=3vtzutuzb131il4io4&biz_content=c30d18ac98e71c03eaa110aab94b5abed6439c942325d1ab50d60e7d8a8460844c9eaf96b66083445bb3f030c3b3782f9f88e382dafc5091f7b2ad63e6994b9a368d52ee36c8dbd7429427d8ca6b6a8a27d4f23faddf49f5600fa340c9a2376d&digest_type=SM3&enc_type=SM4&method=ehc.ehealthcode.verify&term_id=SK0001&timestamp=1557236049417&version=X.M.0.1ae4ead79e2bb40d69f163717b61e7984
-     */
-     
-     switch len(os.Args) {
-        case 4 :
-           
+    aes d ae4ead79e2bb40d69f163717b61e7984 文件 test.txt
+    */
+    switch len(os.Args) {
+        case 5 :
             key := os.Args[2]
             crypted := os.Args[3]
-            iReturn  := saveAesDecrypt(crypted, []byte(key))
+            saveFile := os.Args[4]
+            iReturn  := saveAesDecrypt(crypted, []byte(key), saveFile)
+            fmt.Println(iReturn)
             os.Exit(iReturn)
         case 3:
             key := os.Args[1]
@@ -50,7 +51,8 @@ func main() {
             os.Exit(iReturn1)
         default:
             panic("使用方式：aes.exe key text 或解密 aes.exe d key text 或sha256   aes.exe sha256 text  " )
-     }
+            os.Exit(-100)
+    }
 }
 func saveSHA256(src string) int {
    
@@ -109,14 +111,25 @@ func AesEncrypt(src, key string) []byte {
     return crypted
 }
 
-func saveAesDecrypt(crypted string, key []byte) int {
+func saveAesDecrypt(crypted string, key []byte, saveFile string) int {
     //将解密后的结果写到txt  
-
-    decrypted, _ := base64.StdEncoding.DecodeString(crypted)
-    
-	src := AesDecrypt(decrypted, key)
 	userFile := "AES.txt"
-    fout, err := os.Create(userFile)        
+    if crypted == "文件" {
+        f , err := os.Open(userFile)
+        if err != nil {
+            fmt.Println(userFile, err)
+            return -1
+        }
+        buf := make([]byte, 40480)
+        n, _ := f.Read(buf)
+        fmt.Println(n)
+        f.Close()
+        crypted = string(buf[:n])
+    }
+    decrypted, _ := base64.StdEncoding.DecodeString(crypted)
+    src := AesDecrypt(decrypted, key)
+    //将结果回写到指定的文件
+    fout, err := os.Create(saveFile)        
     if err != nil {
         fmt.Println(userFile, err)
         return -1
