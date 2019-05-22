@@ -1,18 +1,13 @@
 package main
-//taoqing 2019.3.26  gorm  ，如何调用存储过程呢？
 /*
-/SelfService
+tq : SelfService 2019.5.22
 */
 import (
 	"context"
 	"net/http"
-	"os"
 	"runtime/debug"
 	"io/ioutil"
 	"fmt"
-	//"encoding/xml"
-	//"yygh001"
-	//"strings"
 	"net/url"
 	"github.com/spf13/viper"
 	"encoding/json"
@@ -47,47 +42,17 @@ SelfService 入参：
    ]
 }
 */
-type SelfService struct {
-    ClubId string
-	Remark1   string
-	ConsumeTime  string
-}
-type InfoList struct {
-    CustomerId string
-	Remark1   string
-	ItemId  string
-	ItemBzPrice string
-	ItemPrice string 
-	ServicePersonal string
-	Type string
-	RelaId string
-	Count string
-}
-
-type InfoListlice struct {
-    InfoLists []InfoList
-}
 
 type returnJson struct {
 	// ID 不会导出到JSON中
 	//ID int `json:"-"`
-
 	//这样表示会进行二次JSON编码  	Message string `json:"message,string"`
 	Result  string `json:"result"`
 	Message string `json:"message"`
-
 	// 如果 ServerIP 为空，则不输出到JSON串中
 	//ServerIP   string `json:"serverIP,omitempty"`
 }
-/*s := Server {
-ID:         3,
-ServerName:  `Go "1.0" `,
-ServerName2: `Go "1.0" `,
-ServerIP:   ``,
-}
-b, _ := json.Marshal(s)
-os.Stdout.Write(b)
-*/
+
 func returnJSON(code string , errTxt string, w http.ResponseWriter) []byte{
 	s := returnJson {
 		Result:  code,  //0失败 1成功 
@@ -109,16 +74,8 @@ func Decimal(value float64, dec int) float64 {
 	value, _ = strconv.ParseFloat(fmt.Sprintf("%." +  strconv.Itoa(dec) + "f", value), 64)
 	return value
 }
-func isExists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	return os.IsExist(err)
-}
- 
+
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
-	var s InfoListlice
 	fmt.Println("method:", r.Method)
 	body, err := ioutil.ReadAll(r.Body)
     if err != nil {
@@ -130,12 +87,6 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	log.Infof(string(body))
 	//fmt.Println(string(body))
 	//解析参数
-	err = json.Unmarshal([]byte(body), &s)
-    if err != nil {
-		fmt.Printf("error: %v", err)
-		returnJSON("0", err.Error(), w)
-        return
-	}
 	 
 	ClubId := js.Get("clubId").MustString()
 	remark1 := js.Get("Remark1").MustString()
@@ -150,7 +101,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	query.Add("database", viper.GetString("zh.database"))
 	u := &url.URL{
 		Scheme:   "sqlserver" ,
-		User:     url.UserPassword(viper.GetString("zh.userid"), viper.GetString("zh.password").Encode()),
+		User:     url.UserPassword(viper.GetString("zh.userid"), viper.GetString("zh.password")),
 		Host:     fmt.Sprintf("%s:%s", viper.GetString("zh.ip"), viper.GetString("zh.sqlport")),
 		//Path:  ".\\sql2008" , //instance, // if connecting to an instance instead of a port
 		RawQuery: query.Encode(),
@@ -163,12 +114,6 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	db := sql.OpenDB(connector)
 	defer db.Close() 
-	//err = db.Ping()
-	// if err != nil {
-	// 	log.Infof("无法连接数据库:", err.Error())
-	// 	return
-	// }
-	// log.Infof("完成连接")
 	//启动事务
 	txn, err := db.Begin() 
 	if err != nil {
@@ -205,19 +150,6 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//fmt.Println("rs_autonumb is %s", rs_autonumb)
-
-	type returnJson struct {
-		// ID 不会导出到JSON中
-		//ID int `json:"-"`
-	
-		// ServerName2 的值会进行二次JSON编码
-		Result  string `json:"result"`
-		Message string `json:"message,string"`
-	
-		// 如果 ServerIP 为空，则不输出到JSON串中
-		//ServerIP   string `json:"serverIP,omitempty"`
-	}
-
 	var info interface{}
 	var rs_errormsg = ""
 	var price, count, itemprice ,  totalprice  float64
