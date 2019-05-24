@@ -3,7 +3,7 @@ package zhCreateOneStep
 import (
 	"context"
 	"net/http"
- 
+  "strconv"
 	"io/ioutil"
 	"fmt"
 	"net/url"
@@ -157,20 +157,22 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 		zh_func1.ReturnJSON("0", err1.Error(), w)
 		return
 	}
-	if len(rs_errormsg) > 0 {
-		log.Infof(rs_errormsg);
-		zh_func1.ReturnJSON("0", rs_errormsg, w)
-		return
+	if rs_errorcode > 0 {
+		err = txn.Commit()
+		if err != nil {
+			log.Infof("commit失败:" + err.Error());
+			zh_func1.ReturnJSON("0", err.Error(), w)
+			return
+		}
+		log.Infof("成功，会员id:" + rs_fldclientid)
+		zh_func1.ReturnJSON("1", rs_fldclientid, w)
+	} else {
+		log.Infof("失败，会员id:" + rs_fldclientid)
+		zh_func1.ReturnJSON(strconv.Itoa(rs_errorcode), rs_errormsg, w)
 	}
+
 		
-	err = txn.Commit()
-	if err != nil {
-		log.Infof(err.Error());
-		zh_func1.ReturnJSON("0", err.Error(), w)
-		return
-	}
-	log.Infof("成功，会员id:" + rs_fldclientid)
-	zh_func1.ReturnJSON("1", rs_fldclientid, w)
+
 	return
 
 
