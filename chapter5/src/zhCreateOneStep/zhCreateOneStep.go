@@ -29,9 +29,7 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	//解析参数
 	 
 	ClubId := js.Get("clubId").MustString()
- 
-
-	//设置数据库链接参数
+ 	//设置数据库链接参数
 	query := url.Values{}
 	query.Add("app name", "MyAppName")
 	query.Add("encrypt", "disable")
@@ -170,12 +168,7 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 		log.Infof("失败，会员id:" + rs_fldclientid)
 		zh_func1.ReturnJSON(strconv.Itoa(rs_errorcode), rs_errormsg, w)
 	}
-
-		
-
 	return
-
-
 }
  
  
