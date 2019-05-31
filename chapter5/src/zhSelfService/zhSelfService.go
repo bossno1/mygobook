@@ -69,8 +69,8 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	//connector.SessionInitSQL = "set implicit_transactions off"
 	var rs_autonumb = "" //返回流水号
 
-	//下面这个方法也可以
-	_, err1 := txn.ExecContext(ctx, "sp_get_invoinfo",
+	//下面这个方法也可以 (db.ExecContext 不在事务加)
+	_, err1 := db.ExecContext(ctx, "sp_get_invoinfo",
 		sql.Named("al_item", 1),
 		sql.Named("as_linkcode", ClubId),
 		sql.Named("as_date", ConsumeTime),

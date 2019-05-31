@@ -1,0 +1,18 @@
+{
+    "Remark1": "CRM健身扣费入场&电子卡入场",
+    "clubId": "72",
+    "consumeTime": "2019/05/31 19:43:05",
+    "infoList": [
+        {
+            "count": "1",
+            "customerId": "0191319453",
+            "itemBzPrice": "180",
+            "itemId": "1101423",
+            "itemPrice": "0",
+            "packageId": "019001007019",
+            "relaId": "1",
+            "servicePersonal": "",
+            "type": "1"
+        }
+    ]
+}
