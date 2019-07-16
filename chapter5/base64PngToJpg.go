@@ -49,8 +49,10 @@ func main(){
 	 
 	//path := getCurrentPath()
 	//fmt.Println(path)
-	if len(os.Args) != 2 {
-		panic("使用方式：base64PngToJpg.exe  xxxxxx.txt  xxxxxx.jpg")
+	if len(os.Args) != 3 {
+		fmt.Println("参数不正确:" , len(os.Args))
+		panic("使用方式：base64PngToJpg.exe  xxxxxx.txt  xxxxxx.jpg"  + string(len(os.Args)))
+		os.Exit(-3)
 	}
 	parmBase64txt := os.Args[1]
 	if ! PathExists(parmBase64txt){

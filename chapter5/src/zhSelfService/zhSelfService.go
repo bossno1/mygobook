@@ -70,12 +70,13 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	var rs_autonumb = "" //返回流水号
 
 	//下面这个方法也可以 (db.ExecContext 不在事务加)
-	_, err1 := db.ExecContext(ctx, "sp_get_invoinfo",
+	_, err1 := txn.ExecContext(ctx, "sp_get_invoinfo",
 		sql.Named("al_item", 1),
 		sql.Named("as_linkcode", ClubId),
 		sql.Named("as_date", ConsumeTime),
 		sql.Named("rs_autonumb", sql.Out{Dest: &rs_autonumb}),
 	)	
+	log.Infof("取得流水号：" + rs_autonumb);
 	if err1 != nil {
 		log.Infof(err1.Error());
 		zh_func1.ReturnJSON("0", err1.Error(), w)
@@ -102,7 +103,7 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 			sql.Named("carid", info.(map[string]interface{})["packageId"]),
 			sql.Named("clubId", ClubId),
 			sql.Named("itemId", info.(map[string]interface{})["itemId"]),
-			sql.Named("itemBzPrice", info.(map[string]interface{})["itemBzPrice"]),
+			sql.Named("itemBzPrice", info.(map[stringl]interface{})["itemBzPrice"]),
 			sql.Named("itemPrice", price),
 			sql.Named("relaId", info.(map[string]interface{})["relaId"]),
 			sql.Named("servicePersonal", info.(map[string]interface{})["servicePersonal"]),
@@ -148,7 +149,7 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	)	
 	if err1 != nil {
 		log.Infof(err1.Error());
-		zh_func1.ReturnJSON("0", err1.Error(), w)
+		zh_func1.ReturnJSON("-2", err1.Error(), w)
 		return
 	}
 	if len(rs_errormsg) > 0 {
@@ -159,7 +160,7 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	err = txn.Commit()
 	if err != nil {
 		log.Infof(err.Error());
-		zh_func1.ReturnJSON("0", err.Error(), w)
+		zh_func1.ReturnJSON("-1", err.Error(), w)
 		return
 	}
 	log.Infof("成功，流水号:" + rs_autonumb) 
