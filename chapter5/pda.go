@@ -10,6 +10,9 @@ import (
 	"config"
 	"github.com/lexkong/log"
 	"pdaCheckPassword"
+	"pdaGetPatinfo"
+	"pdaGetDoctmark"
+	"pdaUpdateExec"
 	 
 )
 
@@ -51,7 +54,10 @@ func main() {
 	 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/checkpassword", safeHandler(pdaCheckPassword.JsonHandler))
- 
+	mux.HandleFunc("/getpatinfo", safeHandler(pdaGetPatinfo.JsonHandler))
+	mux.HandleFunc("/getdoctmark", safeHandler(pdaGetDoctmark.JsonHandler))
+	mux.HandleFunc("/updateexec", safeHandler(pdaUpdateExec.JsonHandler))
+	
 	fmt.Println("Port:" + viper.GetString("zh.port"))
 	err := http.ListenAndServe(":" +  viper.GetString("zh.port") , mux)
 	if err != nil {

@@ -38,7 +38,7 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	opercode := query["opercode"]
 	//password := query["password"]
-	db, err := gorm.Open("mssql", "sqlserver://" + viper.GetString("his.userid") + ":" + viper.GetString("his.password") + "@" + viper.GetString("his.ip") + "?database=" +  viper.GetString("his.database") + ";encrypt=disable;app name=pda_server")
+	db, err := gorm.Open("mssql", "sqlserver://" + viper.GetString("his.userid") + ":" + viper.GetString("his.password") + "@" + viper.GetString("his.ip")  + ":" + viper.GetString("his.sqlport") + "?database=" +  viper.GetString("his.database") + ";encrypt=disable;app name=pda_server")
 	if err != nil {
 		log.Infof("无法连接数据库", err.Error())
 		pub.ReturnJSON(-1, "无法连接数据库", w)

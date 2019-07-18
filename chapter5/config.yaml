@@ -6,7 +6,8 @@ password: abc
 his:
    userid: sa
    password: 146-164-156-
-   ip: 127.0.0.1:51798
+   ip: 127.0.0.1
+   sqlport: 51798
    database: his_yb
 log:
    writers: file,stdout   
