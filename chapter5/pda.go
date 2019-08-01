@@ -13,6 +13,8 @@ import (
 	"pdaGetPatinfo"
 	"pdaGetDoctmark"
 	"pdaUpdateExec"
+	"pdaGetTwd"
+	"pdaUpdateTwd"
 	 
 )
 
@@ -57,6 +59,8 @@ func main() {
 	mux.HandleFunc("/getpatinfo", safeHandler(pdaGetPatinfo.JsonHandler))
 	mux.HandleFunc("/getdoctmark", safeHandler(pdaGetDoctmark.JsonHandler))
 	mux.HandleFunc("/updateexec", safeHandler(pdaUpdateExec.JsonHandler))
+	mux.HandleFunc("/gettwd", safeHandler(pdaGetTwd.JsonHandler))
+	mux.HandleFunc("/updatetwd", safeHandler(pdaUpdateTwd.JsonHandler))
 	
 	fmt.Println("Port:" + viper.GetString("zh.port"))
 	err := http.ListenAndServe(":" +  viper.GetString("zh.port") , mux)
