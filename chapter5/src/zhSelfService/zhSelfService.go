@@ -25,8 +25,9 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 		zh_func1.ReturnJSON("0", err.Error(), w)
 		return
 	}
+	log.Infof("----收到请求------")
 	js, err := simplejson.NewJson(body)
-	log.Infof(string(body))
+	//log.Infof(string(body))
 	//fmt.Println(string(body))
 	//解析参数
 
@@ -128,6 +129,8 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	log.Infof("完成明细写入" + rs_autonumb)
+
 	//写表头
 	_, err1 = txn.ExecContext(ctx, "sp_g012",
 		sql.Named("newAutonumb", rs_autonumb),
@@ -158,14 +161,19 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 		zh_func1.ReturnJSON("0", rs_errormsg, w)
 		return
 	}
+	log.Infof("完成表头写入" + rs_autonumb)
+
 	err = txn.Commit()
 	if err != nil {
 		log.Infof(err.Error())
 		zh_func1.ReturnJSON("-1", err.Error(), w)
 		return
 	}
-	log.Infof("成功，流水号:" + rs_autonumb)
+
+	log.Infof("----成功完成----" + rs_autonumb)
+
 	zh_func1.ReturnJSON("1", rs_autonumb, w)
+
 	return
 
 }
